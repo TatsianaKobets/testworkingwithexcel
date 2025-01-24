@@ -22,15 +22,17 @@ public class ExcelReader {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode jsonRoot = mapper.createObjectNode();
 
-    List<List<String>> data = new ArrayList<>();
     workbook.forEach(currentSheet -> {
-      System.out.println(
-          "Лист " + workbook.getSheetIndex(currentSheet) + " => " + currentSheet.getSheetName());
+      System.out.println("\nЛист " + workbook.getSheetIndex(currentSheet) + " => " + currentSheet.getSheetName());
+
+      // Инициализируем data для каждого листа
+      List<List<String>> data = new ArrayList<>();
 
       // Читайте данные из Excel файла
       for (int i = 1; i <= currentSheet.getLastRowNum(); i++) {
         XSSFRow row = (XSSFRow) currentSheet.getRow(i);
         List<String> rowData = new ArrayList<>();
+
         for (int j = 0; j < row.getLastCellNum(); j++) {
           XSSFCell cell = row.getCell(j);
           String value = "";
@@ -51,6 +53,7 @@ public class ExcelReader {
         }
         data.add(rowData);
       }
+
       // Создайте JSON объект для текущего листа
       ArrayNode jsonArray = mapper.createArrayNode();
       for (List<String> row : data) {
@@ -59,11 +62,13 @@ public class ExcelReader {
           jsonObject.put("column" + (i + 1), row.get(i));
         }
         jsonArray.add(jsonObject);
+        System.out.println("JSON Object: " + jsonObject);
       }
 
       // Добавьте JSON объект для текущего листа в корневой JSON объект
       jsonRoot.set(currentSheet.getSheetName(), jsonArray);
     });
+
     // Сохраните JSON объект в файл
     File outputFile = new File("output.json");
     if (outputFile.exists()) {

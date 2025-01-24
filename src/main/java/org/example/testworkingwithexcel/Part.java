@@ -36,4 +36,7 @@ public class Part {
   public boolean isProcessed() {
     return currentProductionCenter != null;
   }
+
+  public void setProcessingTime(double v) {
+  }
 }
