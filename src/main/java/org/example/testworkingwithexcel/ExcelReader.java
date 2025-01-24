@@ -19,6 +19,9 @@ public class ExcelReader {
 
   public void readExcelFile() throws Exception {
     XSSFWorkbook workbook = new XSSFWorkbook(new File(TESTDATA_XLSX_FILE_PATH));
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode jsonRoot = mapper.createObjectNode();
+
     List<List<String>> data = new ArrayList<>();
     workbook.forEach(currentSheet -> {
       System.out.println(
@@ -48,20 +51,25 @@ public class ExcelReader {
         }
         data.add(rowData);
       }
-    });
-
-    // Создайте JSON объект
-    ObjectMapper mapper = new ObjectMapper();
-    ArrayNode jsonArray = mapper.createArrayNode();
-    for (List<String> row : data) {
-      ObjectNode jsonObject = mapper.createObjectNode();
-      for (int i = 0; i < row.size(); i++) {
-        jsonObject.put("column" + (i + 1), row.get(i));
+      // Создайте JSON объект для текущего листа
+      ArrayNode jsonArray = mapper.createArrayNode();
+      for (List<String> row : data) {
+        ObjectNode jsonObject = mapper.createObjectNode();
+        for (int i = 0; i < row.size(); i++) {
+          jsonObject.put("column" + (i + 1), row.get(i));
+        }
+        jsonArray.add(jsonObject);
       }
-      jsonArray.add(jsonObject);
-    }
 
+      // Добавьте JSON объект для текущего листа в корневой JSON объект
+      jsonRoot.set(currentSheet.getSheetName(), jsonArray);
+    });
     // Сохраните JSON объект в файл
-    mapper.writeValue(new File("output.json"), jsonArray);
+    File outputFile = new File("output.json");
+    if (outputFile.exists()) {
+      outputFile.delete();
+    }
+    mapper.writeValue(new File("output.json"), jsonRoot);
   }
+
 }
