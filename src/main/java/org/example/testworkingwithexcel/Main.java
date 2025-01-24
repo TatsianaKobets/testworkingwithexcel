@@ -1,20 +1,21 @@
 package org.example.testworkingwithexcel;
 
-import java.io.File;
 import java.io.IOException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 public class Main {
 
   public static final String TESTDATA_XLSX_FILE_PATH = "src/main/resources/testdata.xlsx";
 
-  public static void main(String[] args) throws IOException, InvalidFormatException {
+  public static void main(String[] args) throws Exception {
+    ExcelReader excelReader = new ExcelReader();
+    excelReader.readExcelFile();
+
+    JsonWriter jsonWriter = new JsonWriter();
+    jsonWriter.writeToJson();
+  }
+}
+  /*public static void main(String[] args) throws IOException, InvalidFormatException {
     // Создание книги из файла Excel (.xls or .xlsx). Открываем файл Excel
     Workbook workbook = WorkbookFactory.create(new File(TESTDATA_XLSX_FILE_PATH));
 
@@ -73,6 +74,6 @@ public class Main {
 
     System.out.print("\t");
   }
-}
+}*/
 
 
