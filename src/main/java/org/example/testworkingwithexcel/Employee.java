@@ -1,9 +1,10 @@
 package org.example.testworkingwithexcel;
 
 /**
- * для представления сотрудников, которые могут работать на производственных центрах
+ * To represent employees who can work at production centers.
  */
 public class Employee {
+
   private int id;
   private EmployeeStatus status;
   private ProductionCenter currentProductionCenter;
@@ -14,36 +15,7 @@ public class Employee {
     this.currentProductionCenter = null;
   }
 
-  public Employee(int id, EmployeeStatus status, ProductionCenter currentProductionCenter) {
-    this.id = id;
-    this.status = status;
-    this.currentProductionCenter = currentProductionCenter;
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public EmployeeStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(EmployeeStatus status) {
-    this.status = status;
-  }
-
-  public ProductionCenter getCurrentProductionCenter() {
-    return currentProductionCenter;
-  }
-
-  public void setCurrentProductionCenter(
-      ProductionCenter currentProductionCenter) {
-    this.currentProductionCenter = currentProductionCenter;
-  } public boolean isFree() {
+  public boolean isFree() {
     return status == EmployeeStatus.FREE;
   }
 
@@ -54,6 +26,14 @@ public class Employee {
   public void assignToProductionCenter(ProductionCenter productionCenter) {
     this.currentProductionCenter = productionCenter;
     this.status = EmployeeStatus.BUSY;
+  }
+
+  public void moveBetweenProductionCenters(ProductionCenter from, ProductionCenter to) {
+    if (isFree()) {
+      from.removeEmployee(this);
+      to.addEmployee(this);
+      assignToProductionCenter(to);
+    }
   }
 
   public void freeFromProductionCenter() {

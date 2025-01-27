@@ -1,77 +1,125 @@
 package org.example.testworkingwithexcel;
 
-import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.List;
 
 /**
- * моделирования процесса обработки деталей на производственных центрах с учетом заданного общего количества сотрудников.
+ * Modeling of the process of processing parts at production centers, taking into account the given
+ * general number of employees.
  */
 public class Simulation {
-//метод runSimulation в классе Simulation для запуска симуляции и записи результатов в CSV-файл.
-// Список производственных центров
+
   private List<ProductionCenter> productionCenters;
-  // Список сотрудников
   private List<Employee> employees;
-  // Общее количество сотрудников
   private int totalEmployees;
-  // Время симуляции
   private double time;
 
-  public Simulation(List<ProductionCenter> productionCenters, List<Employee> employees, int totalEmployees) {
+  public Simulation(List<ProductionCenter> productionCenters, List<Employee> employees,
+      int totalEmployees) {
     this.productionCenters = productionCenters;
     this.employees = employees;
     this.totalEmployees = totalEmployees;
     this.time = 0;
   }
 
-  // Метод запуска симуляции
   public void runSimulation() throws IOException {
-    // Создание файла для записи результатов
-    FileWriter writer = new FileWriter("result.csv");
+    File resultFile = new File("result.csv");
+    if (resultFile.exists()) {
 
-    // Запись заголовков в файл
-    writer.write("Time, ProductionCenter, WorkersCount, BufferCount\n");
+      System.out.println("File already exists. Deleting it for a new simulation.");
+      resultFile.delete(); // Удаляем файл, если он существует
+    } else {
 
-    // Основной цикл симуляции
-    while (time < 1000) { // симуляция длится 1000 минут
-      // Обработка каждым производственным центром деталей
+      resultFile.createNewFile();
+    }
+    try (BufferedWriter writer = new BufferedWriter(
+        new OutputStreamWriter(new FileOutputStream(resultFile), "UTF-8"))) {
+
+      writer.write("Time,ProductionCenter,WorkersCount,BufferCount");
+
       for (ProductionCenter productionCenter : productionCenters) {
-        // Обработка деталей в буфере
+        for (int i = 0; i < 10; i++) {
+          productionCenter.addPart(new Part(i, 5.0));
+        }
+      }
+
+      while (time < 1000 && hasUnprocessedParts()) {
+        System.out.println("Время: " + time);
+
+        redistributeEmployees();
+
+        for (ProductionCenter productionCenter : productionCenters) {
+          processParts(productionCenter);
+          System.out.println("Центр: " + productionCenter.getName() +
+              ", Работники: " + productionCenter.getWorkersCount() +
+              ", Буфер: " + productionCenter.getBuffer().size());
+
+          int workersCount = (int) productionCenter.getWorkersCount();
+          int bufferCount = productionCenter.getBuffer().size();
+
+          writer.write(
+              String.format("\n%.1f,%s,%d,%d", time, productionCenter.getName(), workersCount,
+                  bufferCount));
+        }
+
+        time++;
+      }
+    }
+    System.out.println("Симуляция завершена");
+  }
+
+  private boolean hasUnprocessedParts() {
+    for (ProductionCenter productionCenter : productionCenters) {
+      if (!productionCenter.getBuffer().isEmpty()) {
         for (Part part : productionCenter.getBuffer()) {
-          // Если деталь уже обработана, то она удаляется из буфера
-          if (part.isProcessed()) {
-            productionCenter.removePart(part);
-          } else {
-            // Если деталь не обработана, то она обрабатывается сотрудниками
-            for (Employee employee : productionCenter.getEmployees()) {
-              // Если сотрудник свободен, то он начинает обработку детали
-              if (employee.isFree()) {
-                employee.assignToProductionCenter(productionCenter);
-                part.setCurrentProductionCenter(productionCenter);
-                // Обработка детали занимает определенное время
-                part.setProcessingTime(part.getProcessingTime() - 1);
-                // Если деталь обработана, то она помечается как обработанная
-                if (part.getProcessingTime() <= 0) {
-                  part.setCurrentProductionCenter(null);
-                  employee.freeFromProductionCenter();
-                }
-              }
+          if (!part.isProcessed()) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private void redistributeEmployees() {
+    for (ProductionCenter productionCenter : productionCenters) {
+      if (productionCenter.getFreeWorkersCount() > 0) {
+        for (ProductionCenter otherCenter : productionCenters) {
+          if (!productionCenter.equals(otherCenter)
+              && otherCenter.getFreeWorkersCount() < otherCenter.getMaxWorkersCount()) {
+            System.out.println("Распределение сотрудников между центрами");
+            Employee employee = productionCenter.getEmployees().stream().filter(Employee::isFree)
+                .findFirst().orElse(null);
+            if (employee != null) {
+              employee.moveBetweenProductionCenters(productionCenter, otherCenter);
             }
           }
         }
       }
-
-      // Запись результатов в файл
-      for (ProductionCenter productionCenter : productionCenters) {
-        writer.write(time + ", " + productionCenter.getName() + ", " + productionCenter.getWorkersCount() + ", " + productionCenter.getBuffer().size() + "\n");
-      }
-
-      // Увеличение времени симуляции
-      time++;
     }
+  }
 
-    // Закрытие файла
-    writer.close();
+  private void processParts(ProductionCenter productionCenter) {
+    for (Part part : productionCenter.getBuffer()) {
+      if (part.isProcessed()) {
+        productionCenter.removePart(part);
+      } else {
+        for (Employee employee : productionCenter.getEmployees()) {
+          if (employee.isFree()) {
+            employee.assignToProductionCenter(productionCenter);
+            part.setCurrentProductionCenter(productionCenter);
+            part.setProcessingTime(part.getProcessingTime() - 1);
+            if (part.getProcessingTime() <= 0) {
+              part.setCurrentProductionCenter(null);
+              employee.freeFromProductionCenter();
+            }
+          }
+        }
+      }
+    }
   }
 }

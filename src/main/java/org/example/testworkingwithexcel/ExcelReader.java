@@ -13,7 +13,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
- * для чтения данных из рабочей книги, парсинг данных и сохранения в JSON
+ * To read data from a work book, data parsing and saving in JSON
  */
 public class ExcelReader {
 
@@ -23,12 +23,11 @@ public class ExcelReader {
     ObjectNode jsonRoot = mapper.createObjectNode();
 
     workbook.forEach(currentSheet -> {
-      System.out.println("\nЛист " + workbook.getSheetIndex(currentSheet) + " => " + currentSheet.getSheetName());
+      System.out.println(
+          "\nЛист " + workbook.getSheetIndex(currentSheet) + " => " + currentSheet.getSheetName());
 
-      // Инициализируем data для каждого листа
       List<List<String>> data = new ArrayList<>();
 
-      // Читайте данные из Excel файла
       for (int i = 1; i <= currentSheet.getLastRowNum(); i++) {
         XSSFRow row = (XSSFRow) currentSheet.getRow(i);
         List<String> rowData = new ArrayList<>();
@@ -54,7 +53,6 @@ public class ExcelReader {
         data.add(rowData);
       }
 
-      // Создайте JSON объект для текущего листа
       ArrayNode jsonArray = mapper.createArrayNode();
       for (List<String> row : data) {
         ObjectNode jsonObject = mapper.createObjectNode();
@@ -65,16 +63,14 @@ public class ExcelReader {
         System.out.println("JSON Object: " + jsonObject);
       }
 
-      // Добавьте JSON объект для текущего листа в корневой JSON объект
+      System.out.println("JSON Array: " + jsonArray);
       jsonRoot.set(currentSheet.getSheetName(), jsonArray);
     });
 
-    // Сохраните JSON объект в файл
     File outputFile = new File("output.json");
     if (outputFile.exists()) {
       outputFile.delete();
     }
-    mapper.writeValue(new File("output.json"), jsonRoot);
+    mapper.writeValue(outputFile, jsonRoot);
   }
-
 }

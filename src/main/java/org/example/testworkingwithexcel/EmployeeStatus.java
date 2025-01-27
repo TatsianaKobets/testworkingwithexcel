@@ -1,7 +1,7 @@
 package org.example.testworkingwithexcel;
 
 /**
- * для представления статуса сотрудника (свободен или занят).
+ * To represent the employee's status (free or busy).
  */
 public enum EmployeeStatus {
   FREE,

@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * для представления производственных центров, включая их характеристики (максимальное количество сотрудников, время обработки одной детали) и методы для управления сотрудниками и деталями.
+ * To represent production centers, including their characteristics (maximum number of employees,
+ * processing time of one part) and methods for managing employees and details.
  */
 public class ProductionCenter {
+
   private String id;
   private String name;
   private double performance;
@@ -25,7 +27,8 @@ public class ProductionCenter {
     this.connections = new ArrayList<>();
   }
 
-  public ProductionCenter(String id, String name, double performance, double maxWorkersCount, List<Employee> employees, List<Part> buffer, List<Connection> connections) {
+  public ProductionCenter(String id, String name, double performance, double maxWorkersCount,
+      List<Employee> employees, List<Part> buffer, List<Connection> connections) {
     this.id = id;
     this.name = name;
     this.performance = performance;
@@ -39,25 +42,10 @@ public class ProductionCenter {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public double getPerformance() {
-    return performance;
-  }
-
-  public void setPerformance(double performance) {
-    this.performance = performance;
-  }
 
   public double getWorkersCount() {
     return employees.size();
@@ -71,16 +59,8 @@ public class ProductionCenter {
     return maxWorkersCount;
   }
 
-  public void setMaxWorkersCount(double maxWorkersCount) {
-    this.maxWorkersCount = maxWorkersCount;
-  }
-
   public List<Employee> getEmployees() {
     return employees;
-  }
-
-  public void addEmployee(Employee employee) {
-    employees.add(employee);
   }
 
   public void removeEmployee(Employee employee) {
@@ -99,12 +79,17 @@ public class ProductionCenter {
     buffer.remove(part);
   }
 
-  public List<Connection> getConnections() {
-    return connections;
+
+  public boolean canAddEmployee() {
+    return getWorkersCount() < maxWorkersCount;
   }
 
-  public void addConnection(Connection connection) {
-    connections.add(connection);
+  public void addEmployee(Employee employee) {
+    if (canAddEmployee()) {
+      employees.add(employee);
+    } else {
+      throw new IllegalArgumentException("Превышено максимальное количество сотрудников");
+    }
   }
 
   @Override
