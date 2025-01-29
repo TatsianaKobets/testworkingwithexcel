@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,114 +13,104 @@ import java.util.List;
  * general number of employees.
  */
 public class Simulation {
-
   private List<ProductionCenter> productionCenters;
   private List<Employee> employees;
-  private int totalEmployees;
+  private int detailsCount;
   private double time;
+  private List<Connection> connections;
+  private JsonWriter jsonWriter = new JsonWriter();
 
   public Simulation(List<ProductionCenter> productionCenters, List<Employee> employees,
-      int totalEmployees) {
+      int detailsCount,
+      int count, List<Connection> connections) throws IOException {
     this.productionCenters = productionCenters;
     this.employees = employees;
-    this.totalEmployees = totalEmployees;
+    this.detailsCount = detailsCount;
     this.time = 0;
+    this.connections = connections;
   }
+
 
   public void runSimulation() throws IOException {
     File resultFile = new File("result.csv");
     if (resultFile.exists()) {
-
-      System.out.println("File already exists. Deleting it for a new simulation.");
-      resultFile.delete(); // Удаляем файл, если он существует
+      System.out.println("\n Файл уже существует. Удаляем его для новой симуляции.");
+      resultFile.delete();
     } else {
-
       resultFile.createNewFile();
+    }
+
+    // Подготовка к симуляции
+    System.out.println("Подготовка к симуляции");
+
+    System.out.println("Распределяем сотрудников в цехах");
+    System.out.println("Всего сотрудников: " + employees.size());
+    // Распределяем сотрудников по цехам
+    distributeEmployeesToCenters();
+    // Добавить все детали в буфер первого ПЦ
+    ProductionCenter firstCenter = productionCenters.get(1);
+
+    List<Part> startparts = getParts(detailsCount);
+    System.out.println("Список деталей: " + startparts);
+    System.out.println("Количество деталей: " + startparts.size());
+
+    System.out.println("Добавляем детали в буфер первого цеха " + firstCenter.getName());
+    if(productionCenters == firstCenter){
+      for (Part part : startparts) {
+        firstCenter.addPart(part);
+      }
+      System.out.println("Буфер первого цеха: " + firstCenter.getBuffer().size());
+    }else{
+
     }
     try (BufferedWriter writer = new BufferedWriter(
         new OutputStreamWriter(new FileOutputStream(resultFile), "UTF-8"))) {
-
       writer.write("Time,ProductionCenter,WorkersCount,BufferCount");
 
       for (ProductionCenter productionCenter : productionCenters) {
-        for (int i = 0; i < 10; i++) {
-          productionCenter.addPart(new Part(i, 5.0));
-        }
+        int workersCount = (int) productionCenter.getWorkersCount();
+        int bufferCount = productionCenter.getBuffer().size();
+
+        writer.write(
+            String.format("\n%.1f,%s,%d,%d", time, productionCenter.getName(), workersCount,
+                bufferCount));
       }
 
-      while (time < 1000 && hasUnprocessedParts()) {
-        System.out.println("Время: " + time);
-
-        redistributeEmployees();
-
-        for (ProductionCenter productionCenter : productionCenters) {
-          processParts(productionCenter);
-          System.out.println("Центр: " + productionCenter.getName() +
-              ", Работники: " + productionCenter.getWorkersCount() +
-              ", Буфер: " + productionCenter.getBuffer().size());
-
-          int workersCount = (int) productionCenter.getWorkersCount();
-          int bufferCount = productionCenter.getBuffer().size();
-
-          writer.write(
-              String.format("\n%.1f,%s,%d,%d", time, productionCenter.getName(), workersCount,
-                  bufferCount));
-        }
-
-        time++;
-      }
+      System.out.println("Симуляция завершена");
     }
-    System.out.println("Симуляция завершена");
   }
 
-  private boolean hasUnprocessedParts() {
+  public List<Part> getParts(int detailsCount) {
+    if (detailsCount <= 0) {
+      throw new IllegalArgumentException("Details count must be greater than 0");
+    }
+
+    List<Part> parts = new ArrayList<>();
+    for (int i = 0; i < detailsCount; i++) {
+      // Генерировать случайное время обработки для каждой части
+      double processingTime = Math.random() * 10 + 1;
+      parts.add(new Part(i, processingTime));
+    }
+    return parts;
+  }
+  private void distributeEmployeesToCenters() {
+    int remainingEmployees = employees.size();
+
     for (ProductionCenter productionCenter : productionCenters) {
-      if (!productionCenter.getBuffer().isEmpty()) {
-        for (Part part : productionCenter.getBuffer()) {
-          if (!part.isProcessed()) {
-            return true;
-          }
-        }
+      // Получаем максимальное количество сотрудников, которых можно добавить в данный цех
+      int maxEmployeesToAdd = (int) (productionCenter.getMaxWorkersCount() - productionCenter.getEmployees().size());
+      // Определяем, сколько сотрудников мы можем назначить
+      int employeesToAssign = Math.min(maxEmployeesToAdd, remainingEmployees);
+ for (int i = 0; i < employeesToAssign; i++) {
+        Employee employee = employees.get(0);
+        employee.assignToProductionCenter(productionCenter);
+        productionCenter.addEmployee(employee);
+        System.out.println("Сотрудник " + employee.getId() + " назначен на центр " + productionCenter.getName());
+        employees.remove(0);
+        remainingEmployees--;
       }
     }
-    return false;
-  }
 
-  private void redistributeEmployees() {
-    for (ProductionCenter productionCenter : productionCenters) {
-      if (productionCenter.getFreeWorkersCount() > 0) {
-        for (ProductionCenter otherCenter : productionCenters) {
-          if (!productionCenter.equals(otherCenter)
-              && otherCenter.getFreeWorkersCount() < otherCenter.getMaxWorkersCount()) {
-            System.out.println("Распределение сотрудников между центрами");
-            Employee employee = productionCenter.getEmployees().stream().filter(Employee::isFree)
-                .findFirst().orElse(null);
-            if (employee != null) {
-              employee.moveBetweenProductionCenters(productionCenter, otherCenter);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private void processParts(ProductionCenter productionCenter) {
-    for (Part part : productionCenter.getBuffer()) {
-      if (part.isProcessed()) {
-        productionCenter.removePart(part);
-      } else {
-        for (Employee employee : productionCenter.getEmployees()) {
-          if (employee.isFree()) {
-            employee.assignToProductionCenter(productionCenter);
-            part.setCurrentProductionCenter(productionCenter);
-            part.setProcessingTime(part.getProcessingTime() - 1);
-            if (part.getProcessingTime() <= 0) {
-              part.setCurrentProductionCenter(null);
-              employee.freeFromProductionCenter();
-            }
-          }
-        }
-      }
-    }
+    System.out.println("Осталось незадействованных сотрудников: " + remainingEmployees);
   }
 }

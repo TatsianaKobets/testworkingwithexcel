@@ -8,34 +8,20 @@ import java.util.List;
  * processing time of one part) and methods for managing employees and details.
  */
 public class ProductionCenter {
-
   private String id;
   private String name;
   private double performance;
   private double maxWorkersCount;
   private List<Employee> employees;
-  private List<Part> buffer;
   private List<Connection> connections;
-
+private List<Part> buffer = new ArrayList<>();
   public ProductionCenter(String id, String name, double performance, double maxWorkersCount) {
     this.id = id;
     this.name = name;
     this.performance = performance;
     this.maxWorkersCount = maxWorkersCount;
     this.employees = new ArrayList<>();
-    this.buffer = new ArrayList<>();
     this.connections = new ArrayList<>();
-  }
-
-  public ProductionCenter(String id, String name, double performance, double maxWorkersCount,
-      List<Employee> employees, List<Part> buffer, List<Connection> connections) {
-    this.id = id;
-    this.name = name;
-    this.performance = performance;
-    this.maxWorkersCount = maxWorkersCount;
-    this.employees = employees;
-    this.buffer = buffer;
-    this.connections = connections;
   }
 
   public String getId() {
@@ -46,6 +32,9 @@ public class ProductionCenter {
     return name;
   }
 
+  public double getPerformance() {
+    return performance;
+  }
 
   public double getWorkersCount() {
     return employees.size();
@@ -92,16 +81,14 @@ public class ProductionCenter {
     }
   }
 
+  public void addConnection(Connection connection) {
+    connections.add(connection);
+  }
   @Override
   public String toString() {
     return "ProductionCenter{" +
         "id='" + id + '\'' +
         ", name='" + name + '\'' +
-        ", performance=" + performance +
-        ", maxWorkersCount=" + maxWorkersCount +
-        ", employees=" + employees +
-        ", buffer=" + buffer +
-        ", connections=" + connections +
         '}';
   }
 }
