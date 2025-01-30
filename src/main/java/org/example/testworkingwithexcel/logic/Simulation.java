@@ -1,4 +1,4 @@
-package org.example.testworkingwithexcel;
+package org.example.testworkingwithexcel.logic;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -8,6 +8,9 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.example.testworkingwithexcel.entity.Employee;
+import org.example.testworkingwithexcel.entity.Part;
+import org.example.testworkingwithexcel.entity.ProductionCenter;
 
 /**
  * Modeling of the process of processing parts at production centers, taking into account the given
@@ -66,7 +69,7 @@ public class Simulation {
     }
   }
 
-  private void processStep() {
+  void processStep() {
     productionCenters.forEach(pc -> pc.processParts(time));
     transferPartsBetweenCenters();
     redistributeEmployees();
@@ -119,7 +122,7 @@ public class Simulation {
     }
   }
 
-  private boolean isSimulationFinished() {
+  boolean isSimulationFinished() {
     return productionCenters.stream().noneMatch(pc ->
         !pc.getBuffer().isEmpty() ||
             pc.getEmployees().stream().anyMatch(Employee::isBusy) ||
@@ -127,7 +130,7 @@ public class Simulation {
     );
   }
 
-  private void redistributeEmployees() {
+  void redistributeEmployees() {
     List<ProductionCenter> sortedCenters = new ArrayList<>(productionCenters);
     sortedCenters.sort((pc1, pc2) -> {
       double load1 = pc1.getBuffer().size() / (pc1.getEmployees().size() + 1);
@@ -150,13 +153,13 @@ public class Simulation {
     }
   }
 
-  private boolean canMoveEmployee(ProductionCenter source, ProductionCenter target) {
+  boolean canMoveEmployee(ProductionCenter source, ProductionCenter target) {
     boolean hasFreeEmployee = source.getEmployees().stream().anyMatch(Employee::isFree);
     boolean hasSpaceInTarget = target.getEmployees().size() < target.getMaxWorkersCount();
     return hasFreeEmployee && hasSpaceInTarget;
   }
 
-  private void moveEmployee(ProductionCenter source, ProductionCenter target) {
+  void moveEmployee(ProductionCenter source, ProductionCenter target) {
     Optional<Employee> freeEmployee = source.getEmployees().stream()
         .filter(Employee::isFree)
         .findFirst();
@@ -185,7 +188,7 @@ public class Simulation {
 
   }
 
-  private void distributeEmployeesToCenters() {
+  void distributeEmployeesToCenters() {
     int remainingEmployees = employees.size();
 
     for (ProductionCenter productionCenter : productionCenters) {

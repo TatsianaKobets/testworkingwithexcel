@@ -1,7 +1,9 @@
-package org.example.testworkingwithexcel;
+package org.example.testworkingwithexcel.logic;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.example.testworkingwithexcel.entity.Part;
+import org.example.testworkingwithexcel.entity.ProductionCenter;
 
 /**
  * Representation of connections between production centers.

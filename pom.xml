@@ -14,6 +14,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <poi.version>5.2.2</poi.version>
     <poi-ooxml.version>5.2.2</poi-ooxml.version>
+    <jackson-databind>2.12.3</jackson-databind>
+    <junit-jupiter-api>5.8.2</junit-jupiter-api>
+    <mockito-core>4.5.1</mockito-core>
+    <mockito-junit-jupiter>4.5.1</mockito-junit-jupiter>
   </properties>
   <dependencies>
     <dependency>
@@ -29,7 +33,25 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.12.3</version>
+      <version>${jackson-databind}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit-jupiter-api}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito-core}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${mockito-junit-jupiter}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

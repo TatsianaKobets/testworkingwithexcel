@@ -1,4 +1,4 @@
-package org.example.testworkingwithexcel;
+package org.example.testworkingwithexcel.entity;
 
 /**
  * To represent the employee's status (free or busy).

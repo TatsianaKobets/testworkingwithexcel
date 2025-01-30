@@ -1,4 +1,4 @@
-package org.example.testworkingwithexcel;
+package org.example.testworkingwithexcel.entity;
 
 /**
  * A detail that will be processed at production centers.

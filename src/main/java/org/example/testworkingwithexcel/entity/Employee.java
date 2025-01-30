@@ -1,4 +1,4 @@
-package org.example.testworkingwithexcel;
+package org.example.testworkingwithexcel.entity;
 
 /**
  * To represent employees who can work at production centers.
@@ -31,5 +31,9 @@ public class Employee {
 
   public void assignToProductionCenter(ProductionCenter pc) {
     currentCenter = pc;
+  }
+
+  public ProductionCenter getCurrentCenter() {
+    return currentCenter;
   }
 }

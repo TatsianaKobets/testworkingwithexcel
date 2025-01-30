@@ -1,4 +1,4 @@
-package org.example.testworkingwithexcel;
+package org.example.testworkingwithexcel.parsing;
 
 import static org.example.testworkingwithexcel.Main.TESTDATA_XLSX_FILE_PATH;
 
