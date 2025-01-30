@@ -23,9 +23,6 @@ public class ExcelReader {
     ObjectNode jsonRoot = mapper.createObjectNode();
 
     workbook.forEach(currentSheet -> {
-      System.out.println(
-          "\nЛист " + workbook.getSheetIndex(currentSheet) + " => " + currentSheet.getSheetName());
-
       List<List<String>> data = new ArrayList<>();
 
       for (int i = 1; i <= currentSheet.getLastRowNum(); i++) {
@@ -62,10 +59,7 @@ public class ExcelReader {
           jsonObject.put("column" + (i + 1), row.get(i));
         }
         jsonArray.add(jsonObject);
-        System.out.println("JSON Object: " + jsonObject);
       }
-
-      System.out.println("JSON Array: " + jsonArray);
       jsonRoot.set(currentSheet.getSheetName(), jsonArray);
     });
 

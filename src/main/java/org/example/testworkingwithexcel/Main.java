@@ -18,7 +18,8 @@ public class Main {
     int workerCount = jsonWriter.getWorkerCount();
     int detailsCount = jsonWriter.getDetailsCount();
 
-    Simulation simulation = new Simulation(productionCenters, createEmployees(workerCount), detailsCount, workerCount, jsonWriter.getConnections());
+    Simulation simulation = new Simulation(productionCenters, createEmployees(workerCount),
+        detailsCount, workerCount, jsonWriter.getConnections());
     simulation.runSimulation();
   }
 

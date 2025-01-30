@@ -6,57 +6,18 @@ package org.example.testworkingwithexcel;
 public class Part {
 
   private int id;
-  private double processingTime =6;
-  private ProductionCenter currentProductionCenter;
-  private boolean isFree;
+  private double processingTime;
 
   public Part(int id, double processingTime) {
     this.id = id;
-    this.processingTime = processingTime; // Общее время обработки
-    this.isFree = true; // По умолчанию деталь свободна
+    this.processingTime = processingTime;
   }
 
   public int getId() {
     return id;
   }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public void setFree(boolean free) {
-    isFree = free;
-  }
-
   public double getProcessingTime() {
     return processingTime;
-  }
-
-  public void setProcessingTime(double processingTime) {
-    this.processingTime = processingTime;
-  }
-
-  public void setCurrentProductionCenter(ProductionCenter currentProductionCenter) {
-    this.currentProductionCenter = currentProductionCenter;
-  }
-
-  public ProductionCenter getCurrentProductionCenter() {
-    return currentProductionCenter;
-  }
-
-  public void moveBetweenProductionCenters(ProductionCenter from, ProductionCenter to) {
-    // Логика перемещения сотрудника между производственными центрами
-    isFree = true;
-    // ...
-  }
-
-  public boolean isFree() {
-    return isFree;
-  }
-
-  @Override
-  public String toString() {
-    return "Part{" +
-        "id=" + id;
   }
 }

@@ -15,6 +15,7 @@ import java.util.Optional;
  */
 public class Simulation {
 
+  private static final String RESULT_FILE = "result.csv";
   private List<ProductionCenter> productionCenters;
   private List<Employee> employees;
   private int detailsCount;
@@ -31,114 +32,114 @@ public class Simulation {
   }
 
   public void runSimulation() throws IOException {
-    File resultFile = new File("result.csv");
+    File resultFile = new File(RESULT_FILE);
     if (resultFile.exists()) {
-      System.out.println("\n Файл уже существует. Удаляем его для новой симуляции.");
       resultFile.delete();
-    } else {
-      resultFile.createNewFile();
     }
+    resultFile.createNewFile();
 
-    // Подготовка к симуляции
-    System.out.println("Подготовка к симуляции");
-
-    // Распределяем сотрудников по цехам
     distributeEmployeesToCenters();
-
-    // Создаем детали
     List<Part> parts = getParts(detailsCount);
-    System.out.println("Список деталей: " + parts);
-    System.out.println("Количество деталей: " + parts.size());
-
-    // Добавляем все детали в буфер первого ПЦ
     ProductionCenter firstCenter = productionCenters.get(0);
-    System.out.println("Добавляем детали в буфер первого цеха " + firstCenter.getName());
-    for (Part part : parts) {
-      firstCenter.addPart(part);
-    }
-    System.out.println("Буфер первого цеха: " + firstCenter.getBuffer().size());
+    parts.forEach(firstCenter::addPart);
 
-    // Запуск симуляции
     try (BufferedWriter writer = new BufferedWriter(
         new OutputStreamWriter(new FileOutputStream(resultFile), "UTF-8"))) {
+
       writer.write("Time,ProductionCenter,WorkersCount,BufferCount");
 
+      System.out.println("\n=== НАЧАЛО СИМУЛЯЦИИ ===");
+      System.out.printf("Всего деталей: %d | Сотрудников: %d\n", detailsCount, employees.size());
+      printStatusHeader();
+
       while (!isSimulationFinished()) {
-        // Обработка деталей на каждом ПЦ
-        for (ProductionCenter productionCenter : productionCenters) {
-          productionCenter.processParts();
-        }
+        System.out.printf("\n=== Время: %.1f мин ===\n", time);
 
-        // Перераспределение сотрудников
-        redistributeEmployees();
+        processStep();
+        writeCSV(writer);
 
-        // Запись текущего состояния в CSV
-        for (ProductionCenter productionCenter : productionCenters) {
-          int workersCount = (int) productionCenter.getWorkersCount();
-          int bufferCount = productionCenter.getBuffer().size();
-
-          writer.write(
-              String.format("\n%.1f,%s,%d,%d", time, productionCenter.getName(), workersCount,
-                  bufferCount));
-        }
-
-        // Увеличиваем время на 1 минуту
         time += 1.0;
-
-        // Визуализация текущего состояния
-        visualizeState();
       }
-    }
 
-    System.out.println("Симуляция завершена");
+      System.out.println("\n=== СИМУЛЯЦИЯ ЗАВЕРШЕНА ===");
+      printFinalStats();
+    }
   }
 
-  private void visualizeState() {
-    System.out.println("\nТекущее состояние:");
-    for (ProductionCenter center : productionCenters) {
-      System.out.println(center.getName() + " - Рабочие: " + center.getWorkersCount() +
-          ", Буфер: " + center.getBuffer().size());
-      for (Part part : center.getBuffer()) {
-        System.out.println("    Деталь " + part.getId() + " в буфере");
-      }
-      for (Employee employee : center.getEmployees()) {
-        String status = employee.isFree() ? "свободен" : "занят";
-        System.out.println("    Сотрудник " + employee.getId() + " - " + status);
-      }
+  private void processStep() {
+    productionCenters.forEach(pc -> pc.processParts(time));
+    transferPartsBetweenCenters();
+    redistributeEmployees();
+    printCurrentStatus();
+  }
+
+  private void printStatusHeader() {
+    System.out.println("\nЦех\t| Буфер | В работе    | Сотрудники | Статус");
+    System.out.println("--------------------------------------------------");
+  }
+
+  private void printCurrentStatus() {
+    productionCenters.forEach(pc -> {
+      System.out.printf("%-5s\t| %-5d | %-11s | %2d/%-2d     | %s\n",
+          pc.getName(),
+          pc.getBuffer().size(),
+          pc.getProcessingParts(),
+          pc.getEmployees().size(),
+          (int) pc.getMaxWorkersCount(),
+          pc.getStatus());
+    });
+  }
+
+  private void transferPartsBetweenCenters() {
+    connections.forEach(conn -> {
+      List<Part> parts = new ArrayList<>(conn.getBuffer());
+      parts.forEach(part -> {
+        conn.getTo().addPart(part);
+        conn.removePart(part);
+        System.out.printf("[%.1f] %s -> %s: Деталь %d\n",
+            time, conn.getFrom().getName(), conn.getTo().getName(), part.getId());
+      });
+    });
+  }
+
+  private void printFinalStats() {
+    System.out.println("\nИтоговая статистика:");
+    productionCenters.forEach(pc ->
+        System.out.printf("%s: %d деталей обработано\n", pc.getName(), pc.getProcessedCount())
+    );
+  }
+
+  private void writeCSV(BufferedWriter writer) throws IOException {
+    for (ProductionCenter pc : productionCenters) {
+      writer.write(String.format("\n%.1f,%s,%d,%d",
+          time,
+          pc.getName(),
+          pc.getEmployees().size(),
+          pc.getBuffer().size()));
     }
   }
 
   private boolean isSimulationFinished() {
-    // Проверяем, остались ли детали в буферах или в процессе обработки
-    for (ProductionCenter productionCenter : productionCenters) {
-      if (!productionCenter.getBuffer().isEmpty() || productionCenter.getEmployees().stream()
-          .anyMatch(Employee::isBusy)) {
-        System.out.println("Продолжаем симуляцию");
-        return false;
-      }
-    }
-    System.out.println("Симуляция завершена. Все детали обработаны.");
-    return true;
+    return productionCenters.stream().noneMatch(pc ->
+        !pc.getBuffer().isEmpty() ||
+            pc.getEmployees().stream().anyMatch(Employee::isBusy) ||
+            !pc.getProcessingParts().isEmpty()
+    );
   }
 
   private void redistributeEmployees() {
-    // Сортируем цеха по уровню загруженности (по убыванию)
     List<ProductionCenter> sortedCenters = new ArrayList<>(productionCenters);
     sortedCenters.sort((pc1, pc2) -> {
-      double load1 =
-          pc1.getBuffer().size() / (pc1.getWorkersCount()
-              + 1); // +1 чтобы избежать деления на ноль
-      double load2 = pc2.getBuffer().size() / (pc2.getWorkersCount() + 1);
-      return Double.compare(load2, load1); // Сортировка по убыванию загруженности
+      double load1 = pc1.getBuffer().size() / (pc1.getEmployees().size() + 1);
+      double load2 = pc2.getBuffer().size() / (pc2.getEmployees().size() + 1);
+      return Double.compare(load2, load1);
     });
 
-    // Перемещаем сотрудников из менее загруженных цехов в более загруженные
     for (int i = 0; i < sortedCenters.size(); i++) {
-      ProductionCenter targetCenter = sortedCenters.get(i); // Более загруженный цех
+      ProductionCenter targetCenter = sortedCenters.get(i);
       for (int j = sortedCenters.size() - 1; j > i; j--) {
-        ProductionCenter sourceCenter = sortedCenters.get(j); // Менее загруженный цех
+        ProductionCenter sourceCenter = sortedCenters.get(j);
 
-        // Проверяем, можно ли переместить сотрудника из sourceCenter в targetCenter
         if (canMoveEmployee(sourceCenter, targetCenter)) {
           moveEmployee(sourceCenter, targetCenter);
           System.out.println(
@@ -149,45 +150,26 @@ public class Simulation {
     }
   }
 
-  /**
-   * Проверяет, можно ли переместить сотрудника из одного цеха в другой.
-   */
   private boolean canMoveEmployee(ProductionCenter source, ProductionCenter target) {
-    // Проверяем, есть ли свободные сотрудники в source
     boolean hasFreeEmployee = source.getEmployees().stream().anyMatch(Employee::isFree);
-
-    // Проверяем, есть ли место в target для нового сотрудника
-    boolean hasSpaceInTarget = target.getWorkersCount() < target.getMaxWorkersCount();
-
+    boolean hasSpaceInTarget = target.getEmployees().size() < target.getMaxWorkersCount();
     return hasFreeEmployee && hasSpaceInTarget;
   }
 
-  /**
-   * Перемещает одного свободного сотрудника из source в target.
-   */
   private void moveEmployee(ProductionCenter source, ProductionCenter target) {
-    // Находим первого свободного сотрудника в source
     Optional<Employee> freeEmployee = source.getEmployees().stream()
         .filter(Employee::isFree)
         .findFirst();
 
     if (freeEmployee.isPresent()) {
       Employee employee = freeEmployee.get();
-
-      // Удаляем сотрудника из source
       source.removeEmployee(employee);
-
-      // Добавляем сотрудника в target
       target.addEmployee(employee);
-
-      // Обновляем текущий цех сотрудника
-      employee.setCurrentProductionCenter(target);
-
+      employee.assignToProductionCenter(target);
       System.out.println("Сотрудник перемещен из " + source.getName() + " в " + target.getName());
     }
   }
 
-  // Метод для получения списка деталей
   public List<Part> getParts(int detailsCount) {
     if (detailsCount <= 0) {
       throw new IllegalArgumentException("Подсчет деталей должен быть больше 0");
