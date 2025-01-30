@@ -35,18 +35,20 @@ public class ExcelReader {
         for (int j = 0; j < row.getLastCellNum(); j++) {
           XSSFCell cell = row.getCell(j);
           String value = "";
-          switch (cell.getCellType()) {
-            case STRING:
-              value = cell.getStringCellValue();
-              break;
-            case NUMERIC:
-              value = String.valueOf(cell.getNumericCellValue());
-              break;
-            case BOOLEAN:
-              value = String.valueOf(cell.getBooleanCellValue());
-              break;
-            default:
-              value = "";
+          if (cell != null) {
+            switch (cell.getCellType()) {
+              case STRING:
+                value = cell.getStringCellValue();
+                break;
+              case NUMERIC:
+                value = String.valueOf(cell.getNumericCellValue());
+                break;
+              case BOOLEAN:
+                value = String.valueOf(cell.getBooleanCellValue());
+                break;
+              default:
+                value = "";
+            }
           }
           rowData.add(value);
         }

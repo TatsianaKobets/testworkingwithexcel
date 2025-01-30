@@ -31,6 +31,31 @@ public class Employee {
     this.currentProductionCenter = null;
   }
 
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public EmployeeStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(EmployeeStatus status) {
+    this.status = status;
+  }
+
+  public ProductionCenter getCurrentProductionCenter() {
+    return currentProductionCenter;
+  }
+
+  public void setCurrentProductionCenter(
+      ProductionCenter currentProductionCenter) {
+    this.currentProductionCenter = currentProductionCenter;
+  }
+
+  public void setPerformance(double performance) {
+    this.performance = performance;
+  }
+
   public boolean isFree() {
     return status == EmployeeStatus.FREE;
   }

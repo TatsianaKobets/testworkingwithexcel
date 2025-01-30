@@ -4,15 +4,16 @@ package org.example.testworkingwithexcel;
  * A detail that will be processed at production centers.
  */
 public class Part {
+
   private int id;
-  private double processingTime;
+  private double processingTime =6;
   private ProductionCenter currentProductionCenter;
   private boolean isFree;
 
   public Part(int id, double processingTime) {
     this.id = id;
-    this.processingTime = processingTime;
-    //this.currentProductionCenter = null;
+    this.processingTime = processingTime; // Общее время обработки
+    this.isFree = true; // По умолчанию деталь свободна
   }
 
   public int getId() {

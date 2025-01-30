@@ -2,6 +2,8 @@ package org.example.testworkingwithexcel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * To represent production centers, including their characteristics (maximum number of employees,
@@ -90,5 +92,41 @@ private List<Part> buffer = new ArrayList<>();
         "id='" + id + '\'' +
         ", name='" + name + '\'' +
         '}';
+  }
+  ExecutorService executor = Executors.newFixedThreadPool(1); // создаем пул потоков с 5 потоками
+
+  public void processParts() {
+    for (Employee employee : employees) {
+      if (employee.isFree() && !buffer.isEmpty()) {
+        Part part = buffer.remove(0);
+        employee.assignToProductionCenter(this);
+        System.out.println("Сотрудник " + employee.getId() + " начинает обработку детали " + part.getId());
+
+        double processingTime = part.getProcessingTime() * (1 / performance);
+
+        // Имитация обработки детали
+        executor.submit(() -> {
+          try {
+            Thread.sleep((long) (processingTime * 1000)); // Имитация времени обработки в миллисекундах
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+          System.out.println("Сотрудник " + employee.getId() + " завершил обработку детали " + part.getId());
+          moveToNextProductionCenter(part); // Перемещение детали в следующий цех
+          employee.setStatus(EmployeeStatus.FREE); // Освобождаем сотрудника
+          System.out.println("Сотрудник " + employee.getId() + " свободен");
+        });
+      }
+    }
+  }
+
+  private void moveToNextProductionCenter(Part part) {
+    for (Connection connection : connections) {
+      if (connection.getFrom() == this) {
+        connection.addPart(part);
+        System.out.println("Деталь " + part.getId() + " перемещена в следующий цех: " + connection.getTo().getName());
+        break;
+      }
+    }
   }
 }
